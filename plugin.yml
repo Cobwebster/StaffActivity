@@ -10,8 +10,8 @@ commands:
 
 permissions:
     staffcheck.use:
-        description: Allows guicreate
+        description: Allows checking
         default: op
     staff.log:
-        description: Allows guicreate
+        description: Allows logging
         default: op
