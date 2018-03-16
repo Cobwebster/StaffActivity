@@ -1,0 +1,17 @@
+main: com.swiftpenguin.StaffActivity.StaffActivity
+name: StaffActivity
+version: 1.0
+author: Cobwebster
+
+commands:
+  staffcheck:
+     description: staffChecker
+     usuage: /<command>
+
+permissions:
+    staffcheck.use:
+        description: Allows guicreate
+        default: op
+    staff.log:
+        description: Allows guicreate
+        default: op
