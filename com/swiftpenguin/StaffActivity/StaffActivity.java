@@ -65,10 +65,9 @@ public class StaffActivity extends JavaPlugin implements Listener {
         Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             public void run() {
                 long CurrentTime = System.currentTimeMillis() / 1000;
-                
+
                 for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
                     int LastTimeStamp = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
-
                     long Difference = CurrentTime - LastTimeStamp;
 
                     if (Difference >= 432000) {
