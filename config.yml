@@ -1,5 +1,16 @@
+Version: 1
+Settings:
+  NotYetFunctional: "If I add more stuff, it'll be here.."
+MySQL:
+  UseMySQL: false
+  IP: "localhost"
+  Port: 3306
+  DB-Name: "staffactivity"
+  Table: "tracking"
+  Username: "root"
+  Password: ""
 StaffUUIDS:
-  43a61dc7-7b99-test-a06a-2bc16ff69d5d:
+  43a6-Make-Sure-To-Have-AtLeast-1-Record-Here:
     status: ACTIVE
     timeStamp: 1521197033
     pName: TestAccount
