@@ -88,6 +88,8 @@ public class runMySQL implements Listener {
         });
     }
 
+    //Below this point is not used, was just for testing.... Will remove here shortly...
+
     public boolean playerExists(UUID uuid) {
         try {
             PreparedStatement statement = plugin.getConnection().prepareStatement("SELECT * FROM tracking WHERE UUID = ?");
