@@ -39,7 +39,6 @@ public class StaffActivity extends JavaPlugin implements Listener {
                 }
                 setConnection(DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database, this.username, this.password));
                 System.out.println("StaffActivity MySQL Connected.");
-
                 try {
                     PreparedStatement statement = getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS `tracking` (`UUID` varchar(65), `Timestamp` varchar(65))");
                     statement.executeUpdate();
@@ -67,41 +66,38 @@ public class StaffActivity extends JavaPlugin implements Listener {
             getServer().getPluginManager().registerEvents(new StaffLogger(this), this);
         }
 
-        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-            public void run() {
+        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> { // check this works
+            for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
+                int LastTimeStamp = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
+                long CurrentTime = System.currentTimeMillis() / 1000;
+                long Difference = CurrentTime - LastTimeStamp;
 
-                for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
-                    int LastTimeStamp = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
-                    long CurrentTime = System.currentTimeMillis() / 1000;
-                    long Difference = CurrentTime - LastTimeStamp;
-
-                    if (Difference >= 432000) {
-                        if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "DEAD") {
-                            getConfig().set("StaffUUIDS." + uuid + ".status", "DEAD");
-                            getConfig().options().copyDefaults(true);
-                            saveConfig();
-                        }
-                    } else if (Difference >= 259200) {
-                        if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "DANGER") {
-                            getConfig().set("StaffUUIDS." + uuid + ".status", "DANGER");
-                            getConfig().options().copyDefaults(true);
-                            saveConfig();
-                        }
-                    } else if (Difference >= 172800) {
-                        if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "INACTIVE") {
-                            getConfig().set("StaffUUIDS." + uuid + ".status", "INACTIVE");
-                            getConfig().options().copyDefaults(true);
-                            saveConfig();
-                        } else if (Difference <= 86400) {
-                            if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "ACTIVE") {
-                                getConfig().set("StaffUUIDS." + uuid + ".status", "ACTIVE");
-                                getConfig().options().copyDefaults(true);
-                                saveConfig();
-                            }
-                        }
-                    } else {
-                        return;
+                if (Difference >= 432000) {
+                    if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "DEAD") {
+                        getConfig().set("StaffUUIDS." + uuid + ".status", "DEAD");
+                        getConfig().options().copyDefaults(true);
+                        saveConfig();
                     }
+                } else if (Difference >= 259200) {
+                    if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "DANGER") {
+                        getConfig().set("StaffUUIDS." + uuid + ".status", "DANGER");
+                        getConfig().options().copyDefaults(true);
+                        saveConfig();
+                    }
+                } else if (Difference >= 172800) {
+                    if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "INACTIVE") {
+                        getConfig().set("StaffUUIDS." + uuid + ".status", "INACTIVE");
+                        getConfig().options().copyDefaults(true);
+                        saveConfig();
+                    } else if (Difference <= 86400) {
+                        if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "ACTIVE") {
+                            getConfig().set("StaffUUIDS." + uuid + ".status", "ACTIVE");
+                            getConfig().options().copyDefaults(true);
+                            saveConfig();
+                        }
+                    }
+                } else {
+                    return;
                 }
             }
         }, 100, 12000);

@@ -24,23 +24,23 @@ public class runMySQL implements Listener {
             try {
                 PreparedStatement statement = plugin.getConnection().prepareStatement("SELECT UUID, Timestamp FROM tracking");
                 ResultSet results = statement.executeQuery();
-                results.next();
                 if (results.next()) {
-
                     do {
                         String uuid = results.getString("UUID");
                         long timestamp = results.getLong("Timestamp");
 
                         plugin.getConfig().set("StaffUUIDS." + uuid + ".timeStamp", timestamp);
+                        plugin.getConfig().addDefault("StaffUUIDS." + uuid + ".pName", "");
+                        plugin.getConfig().addDefault("StaffUUIDS." + uuid + ".status", "");
                         plugin.getConfig().options().copyDefaults(true);
                         plugin.saveConfig();
-                        Bukkit.getServer().broadcastMessage("Updated TimeStamp - LoopTask");
+                        // Config Updater Loop - Keeps all servers up to date
                     } while (results.next());
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }, 10L, 1000L);
+        }, 200L, 1000L);
     }
 
     @EventHandler
@@ -62,11 +62,17 @@ public class runMySQL implements Listener {
                 plugin.getConfig().options().copyDefaults(true);
                 plugin.saveConfig();
                 try { // MySQL Creating a Player table
-                    PreparedStatement insert = plugin.getConnection().prepareStatement("INSERT INTO tracking (UUID,Timestamp) VALUE (?,?)");
-                    insert.setString(1, uuid.toString());
-                    insert.setLong(2, System.currentTimeMillis() / 1000);
-                    insert.executeUpdate();
-                    Bukkit.getServer().broadcastMessage("PLAYED ADDED");
+                    PreparedStatement check = plugin.getConnection().prepareStatement("SELECT UUID FROM tracking WHERE UUID = ?"); // Check if they exist in MySQL
+                    check.setString(1, uuid.toString());
+                    ResultSet rs = check.executeQuery();
+                    if (!rs.next()) {
+                        PreparedStatement insert = plugin.getConnection().prepareStatement("INSERT INTO tracking (UUID,Timestamp) VALUE (?,?)"); // Adding them to MySQL
+                        insert.setString(1, uuid.toString());
+                        insert.setLong(2, System.currentTimeMillis() / 1000);
+                        insert.executeUpdate();
+                        // Player Added to MySQL + Config
+                        // Prevent double MySQL logging between servers
+                    }
                 } catch (SQLException eve) {
                     eve.printStackTrace();
                 }
@@ -81,7 +87,7 @@ public class runMySQL implements Listener {
                     statement.setLong(1, timestamp);
                     statement.setString(2, uuid.toString());
                     statement.executeUpdate();
-                    Bukkit.getServer().broadcastMessage("updated timestamp");
+                    // Updated Player TimeStamp
                 } catch (SQLException eve) {
                     eve.printStackTrace();
                 }
@@ -90,7 +96,27 @@ public class runMySQL implements Listener {
     }
 }
 
-    //Below this point is not used, was just for testing.... Will remove here shortly...
+//Below this point is not used, was just for testing.... Will remove here shortly...
+
+
+//
+//    @EventHandler
+//    public void onTalk (AsyncPlayerChatEvent e){
+//        UUID uuid = e.getPlayer().getUniqueId();
+//        try {
+//            PreparedStatement check = plugin.getConnection().prepareStatement("SELECT UUID FROM tracking WHERE UUID = ?");
+//            check.setString(1, uuid.toString());
+//            ResultSet rs = check.executeQuery();
+//            if (!rs.next()) {
+//                System.out.println("Not Found Player");
+//            } else {
+//                System.out.println("Found Player");
+//            }
+//        } catch (SQLException eve){
+//            eve.printStackTrace();
+//        }
+//    }
+
 
 //    public boolean playerExists(UUID uuid) {
 //        try {
