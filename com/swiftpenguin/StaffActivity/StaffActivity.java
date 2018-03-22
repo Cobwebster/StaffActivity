@@ -8,9 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class StaffActivity extends JavaPlugin implements Listener {
 
@@ -41,6 +39,13 @@ public class StaffActivity extends JavaPlugin implements Listener {
                 }
                 setConnection(DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database, this.username, this.password));
                 System.out.println("StaffActivity MySQL Connected.");
+
+                try {
+                    PreparedStatement statement = getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS `tracking` (`UUID` varchar(65), `Timestamp` varchar(65))");
+                    statement.executeUpdate();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -64,10 +69,10 @@ public class StaffActivity extends JavaPlugin implements Listener {
 
         Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             public void run() {
-                long CurrentTime = System.currentTimeMillis() / 1000;
 
                 for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
                     int LastTimeStamp = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
+                    long CurrentTime = System.currentTimeMillis() / 1000;
                     long Difference = CurrentTime - LastTimeStamp;
 
                     if (Difference >= 432000) {
