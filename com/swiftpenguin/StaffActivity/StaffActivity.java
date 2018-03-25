@@ -40,7 +40,7 @@ public class StaffActivity extends JavaPlugin implements Listener {
                 setConnection(DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database, this.username, this.password));
                 System.out.println("StaffActivity MySQL Connected.");
                 try {
-                    PreparedStatement statement = getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS `tracking` (`UUID` varchar(65), `Timestamp` varchar(65))");
+                    PreparedStatement statement = getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS `tracking` (`UUID` varchar(65), `Timestamp` varchar(65), `PlayerName` varchar(65))");
                     statement.executeUpdate();
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -66,41 +66,38 @@ public class StaffActivity extends JavaPlugin implements Listener {
             getServer().getPluginManager().registerEvents(new StaffLogger(this), this);
         }
 
-        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> { // check this works
+        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            public void run() {
             for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
                 int LastTimeStamp = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
                 long CurrentTime = System.currentTimeMillis() / 1000;
-                long Difference = CurrentTime - LastTimeStamp;
+                long difference = CurrentTime - LastTimeStamp;
 
-                if (Difference >= 432000) {
-                    if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "DEAD") {
-                        getConfig().set("StaffUUIDS." + uuid + ".status", "DEAD");
-                        getConfig().options().copyDefaults(true);
-                        saveConfig();
-                    }
-                } else if (Difference >= 259200) {
-                    if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "DANGER") {
-                        getConfig().set("StaffUUIDS." + uuid + ".status", "DANGER");
-                        getConfig().options().copyDefaults(true);
-                        saveConfig();
-                    }
-                } else if (Difference >= 172800) {
-                    if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "INACTIVE") {
-                        getConfig().set("StaffUUIDS." + uuid + ".status", "INACTIVE");
-                        getConfig().options().copyDefaults(true);
-                        saveConfig();
-                    } else if (Difference <= 86400) {
-                        if (getConfig().getString("StaffUUIDS." + uuid + ".status") != "ACTIVE") {
-                            getConfig().set("StaffUUIDS." + uuid + ".status", "ACTIVE");
-                            getConfig().options().copyDefaults(true);
-                            saveConfig();
-                        }
-                    }
-                } else {
-                    return;
+                if (difference <= 86400) {
+
+                    getConfig().set("StaffUUIDS." + uuid + ".status", "ACTIVE");
+                    getConfig().options().copyDefaults(true);
+                    saveConfig();
+                }
+                if (difference >= 172800 && difference < 259200) {
+
+                    getConfig().set("StaffUUIDS." + uuid + ".status", "INACTIVE");
+                    getConfig().options().copyDefaults(true);
+                    saveConfig();
+                }
+                if (difference >= 259200 && difference < 432000) {
+                    getConfig().set("StaffUUIDS." + uuid + ".status", "DANGER");
+                    getConfig().options().copyDefaults(true);
+                    saveConfig();
+                }
+                if (difference >= 432000) {
+                    getConfig().set("StaffUUIDS." + uuid + ".status", "DEAD");
+                    getConfig().options().copyDefaults(true);
+                    saveConfig();
                 }
             }
-        }, 100, 12000);
+            }
+        }, 800L, 12000);
     }
 
     private void registerConfig() {
@@ -119,33 +116,29 @@ public class StaffActivity extends JavaPlugin implements Listener {
                 int danger = 0;
                 int active = 0;
 
-                for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
+                    for (String uuid : getConfig().getConfigurationSection("StaffUUIDS").getKeys(false)) {
+                        int time = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
+                        long calc = (timestamp - time) / 60;
+                        long calcd = calc / 60;
+                        total++;
 
-                    int time = getConfig().getInt("StaffUUIDS." + uuid + ".timeStamp");
-                    long calc = (timestamp - time) / 60;
-                    long calcd = calc / 60;
-
-                    total++;
-
-                    if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("DEAD")) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.DARK_RED + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
-                        dead++;
-                    } else if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("INACTIVE")) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.RED + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
-                        inactive++;
-                    } else if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("ACTIVE")) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.GREEN + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
-                        active++;
-                    } else if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("DANGER")) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.RED + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
-                        danger++;
+                        if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("DEAD")) {
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.DARK_RED + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
+                            dead++;
+                        } else if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("INACTIVE")) {
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.RED + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
+                            inactive++;
+                        } else if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("ACTIVE")) {
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.GREEN + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
+                            active++;
+                        } else if (getConfig().getString("StaffUUIDS." + uuid + ".status").equalsIgnoreCase("DANGER")) {
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + getConfig().getString("StaffUUIDS." + uuid + ".pName") + ChatColor.DARK_GRAY + " -> " + ChatColor.RED + getConfig().getString("StaffUUIDS." + uuid + ".status") + ChatColor.DARK_GRAY + " -> " + ChatColor.GOLD + calcd);
+                            danger++;
+                        }
                     }
-                }
-                sender.sendMessage(ChatColor.GOLD + "Monitoring " + total + " Active " + active + " Inactive " + inactive + " Danger " + danger + " Dead " + dead);
+                    sender.sendMessage(ChatColor.GOLD + "Monitoring " + total + " Active " + active + " Inactive " + inactive + " Danger " + danger + " Dead " + dead);
             }
         }
-        return true;
-    }
+            return true;
+        }
 }
-
-
